@@ -1,5 +1,5 @@
 ﻿Imports System.Runtime.InteropServices
-
+Imports System.Threading.Tasks
 Public Class Form1
     ' 引入 Windows API 函数
     <DllImport("user32.dll", SetLastError:=True)>
@@ -21,6 +21,10 @@ Public Class Form1
     <DllImport("user32.dll", SetLastError:=True)>
     Private Shared Sub mouse_event(ByVal dwFlags As UInteger, ByVal dx As UInteger, ByVal dy As UInteger, ByVal dwData As UInteger, ByVal dwExtraInfo As IntPtr)
     End Sub
+
+    <DllImport("user32.dll")>
+    Private Shared Function GetCursorPos(ByRef lpPoint As Point) As Boolean
+    End Function
     ' 定义结构体
     <StructLayout(LayoutKind.Sequential)>
     Private Structure INPUT
@@ -79,7 +83,8 @@ Public Class Form1
 
     ' 窗体加载时注册全局热键
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        RegisterHotKey(Me.Handle, HOTKEY_ID, MOD_CONTROL Or MOD_ALT, Keys.S)
+        'RegisterHotKey(Me.Handle, HOTKEY_ID, MOD_CONTROL Or MOD_ALT, Keys.S)
+        RegisterHotKey(Me.Handle, HOTKEY_ID, MOD_ALT, Keys.S)
     End Sub
 
     ' 窗体关闭时注销全局热键
@@ -96,6 +101,8 @@ Public Class Form1
                 ' 调用你的子程序或函数
                 ' CallMyFunction()
                 SendCtrlAltD()
+                Threading.Thread.Sleep(TextBox5.Text)
+                DragMouse（TextBox1.Text, TextBox2.Text, TextBox3.Text, TextBox4.Text）
             End If
         End If
         MyBase.WndProc(m)
@@ -146,12 +153,50 @@ Public Class Form1
     Private Sub DragMouse(x1 As Integer, y1 As Integer, x2 As Integer, y2 As Integer)
         ' 移动到起始位置并按下鼠标左键
         SetCursorPos(x1, y1)
+        Threading.Thread.Sleep(TextBox6.Text)
         mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, IntPtr.Zero)
-
+        Threading.Thread.Sleep(TextBox6.Text)
         ' 移动到目标位置
         SetCursorPos(x2, y2)
-
+        Threading.Thread.Sleep(TextBox6.Text)
         ' 松开鼠标左键
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, IntPtr.Zero)
+    End Sub
+
+
+    ' 获取当前鼠标坐标的方法
+    Private Function GetMousePosition() As Point
+        Dim p As New Point()
+        GetCursorPos(p)
+        Return p
+    End Function
+
+    ' 异步方法，延时3秒后获取当前鼠标坐标
+    Private Async Sub GetMousePositionWithDelayA()
+        Await Task.Delay(3000) ' 延时3秒
+        Dim pos As Point = GetMousePosition()
+        'MessageBox.Show("当前鼠标坐标: X=" & pos.X & " Y=" & pos.Y)
+        TextBox1.Text = pos.X
+        TextBox2.Text = pos.Y
+        Console.Beep(330, 500)
+    End Sub
+
+    Private Async Sub GetMousePositionWithDelayB()
+        Await Task.Delay(3000) ' 延时3秒
+        Dim pos As Point = GetMousePosition()
+        ' MessageBox.Show("当前鼠标坐标: X=" & pos.X & " Y=" & pos.Y)
+        TextBox3.Text = pos.X
+        TextBox4.Text = pos.Y
+        Console.Beep(330, 500)
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Console.Beep(262, 500)
+        GetMousePositionWithDelayA()
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Console.Beep(262, 500)
+        GetMousePositionWithDelayB()
     End Sub
 End Class
